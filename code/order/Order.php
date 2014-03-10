@@ -188,51 +188,62 @@ class Order extends DataObject implements PermissionProvider {
 
 	public function providePermissions() {
 		return array(
-			'VIEW_ORDER' => 'View orders',
-			'EDIT_ORDER' => 'Edit orders'
+			'VIEW_ORDER' => array(
+				'name' => _t('Permissions.SHOP_VIEW_ORDERS', 'View shop orders'),
+				'category' => _t('Permissions.SHOP_CATEGORY', 'Shop permissions'),
+				'sort' => 1,
+				'help' => _t('Permissions.SHOP_VIEW_ORDERS_HELP', 'Ability to view all orders')
+			),
+			'EDIT_ORDER' => array(
+				'name' => _t('Permissions.SHOP_EDIT_ORDERS', 'Edit shop orders'),
+				'category' => _t('Permissions.SHOP_CATEGORY', 'Shop permissions'),
+				'sort' => 2,
+				'help' => _t('Permissions.SHOP_EDIT_ORDERS_HELP',
+					'Ability to edit all orders (i.e. adding and modifying order updates)')
+			),
+			'DELETE_ORDER' => array(
+				'name' => _t('Permissions.SHOP_DELETE_ORDER', 'Delete shop orders'),
+				'category' => _t('Permissions.SHOP_CATEGORY', 'Shop permissions'),
+				'sort' => 4,
+				'help' => _t('Permissions.SHOP_DELETE_ORDER_HELP', 'Ability to delete an order')
+			)
 		);
 	}
 
 	public function canView($member = null) {
-
-		if ($member == null && !$member = Member::currentUser()) return false;
-
-		$administratorPerm = Permission::check('ADMIN') && Permission::check('VIEW_ORDER', 'any', $member);
-		$customerPerm = Permission::check('VIEW_ORDER', 'any', $member) && $member->ID == $this->MemberID;
-
-		return $administratorPerm || $customerPerm;
+		if ($member == null && !$member = Member::currentUser()) {
+			return false;
+		} else {
+			return Permission::checkMember($member, 'VIEW_ORDER');
+		}
 	}
 	
-	/**
-	 * Prevent orders from being edited in the CMS
-	 * 
-	 * @see DataObject::canEdit()
-	 * @return Boolean False always
-	 */
 	public function canEdit($member = null) {
-		$administratorPerm = Permission::check('ADMIN') && Permission::check('EDIT_ORDER', 'any', $member);
-		
-		return $administratorPerm;
+		if ($member == null && !$member = Member::currentUser()) {
+			return false;
+		} else {
+			return Permission::checkMember($member, 'CMS_ACCESS_ShopAdmin')
+				&& Permission::checkMember($member, 'EDIT_ORDER');
+		}
 	}
-	
+
+	public function canDelete($member = null) {
+		if ($member == null && !$member = Member::currentUser()) {
+			return false;
+		} else {
+			return Permission::checkMember($member, 'CMS_ACCESS_ShopAdmin')
+				&& Permission::checkMember($member, 'DELETE_ORDER');
+		}
+	}
+
 	/**
 	 * Prevent orders from being created in the CMS
-	 * 
+	 *
 	 * @see DataObject::canCreate()
 	 * @return Boolean False always
 	 */
 	public function canCreate($member = null) {
 		return false;
-	}
-	
-	/**
-	 * Prevent orders from being deleted in the CMS
-	 * 
-	 * @see DataObject::canDelete()
-	 * @return Boolean False always
-	 */
-	public function canDelete($member = null) {
-		return Permission::check('ADMIN');
 	}
 
 	/**
@@ -857,6 +868,32 @@ class Order_Update extends DataObject {
 		'Member.Name' => 'Owner',
 		'VisibleSummary' => 'Visible'
 	);
+
+	public function canView($member = null) {
+		if ($member == null && !$member = Member::currentUser()) {
+			return false;
+		} else {
+			return Permission::checkMember($member, 'VIEW_ORDER');
+		}
+	}
+
+	public function canCreate($member = null) {
+		if ($member == null && !$member = Member::currentUser()) {
+			return false;
+		} else {
+			return Permission::checkMember($member, 'CMS_ACCESS_ShopAdmin')
+				  && Permission::checkMember($member, 'EDIT_ORDER');
+		}
+	}
+
+	public function canEdit($member = null) {
+		if ($member == null && !$member = Member::currentUser()) {
+			return false;
+		} else {
+			return Permission::checkMember($member, 'CMS_ACCESS_ShopAdmin')
+				&& Permission::checkMember($member, 'EDIT_ORDER');
+		}
+	}
 
 	public function canDelete($member = null) {
 		return false;

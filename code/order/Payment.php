@@ -21,13 +21,51 @@ class Payment_Extension extends DataExtension {
 		'PaidBy.Name' => 'Customer'
 	);
 
+	public function providePermissions() {
+		return array(
+			'VIEW_PAYMENT' => array(
+				'name' => _t('Permissions.SHOP_VIEW_PAYMENTS', 'View payments'),
+				'category' => _t('Permissions.SHOP_CATEGORY', 'Shop permissions'),
+				'sort' => 11,
+				'help' => _t('Permissions.SHOP_VIEW_PAYMENTS_HELP',
+					'Ability to view payments associated with shop orders')
+			),
+			'EDIT_PAYMENT' => array(
+				'name' => _t('Permissions.SHOP_EDIT_PAYMENTS', 'Edit payments'),
+				'category' => _t('Permissions.SHOP_CATEGORY', 'Shop permissions'),
+				'sort' => 12,
+				'help' => _t('Permissions.SHOP_EDIT_PAYMENTS_HELP',
+					'Ability to edit payments associated with shop orders (if granted, the associated
+					users will be able to mark payments as complete)')
+			)
+		);
+	}
+
+	public function canView($member = null) {
+		if ($member == null && !$member = Member::currentUser()) {
+			return false;
+		} else {
+			return Permission::checkMember($member, 'CMS_ACCESS_ShopAdmin')
+				&& Permission::checkMember($member, 'VIEW_PAYMENT');
+		}
+	}
+
+	public function canEdit($member = null) {
+		if ($member == null && !$member = Member::currentUser()) {
+			return false;
+		} else {
+			return Permission::checkMember($member, 'CMS_ACCESS_ShopAdmin')
+				&& Permission::checkMember($member, 'EDIT_PAYMENT');
+		}
+	}
+
 	/**
 	 * Cannot create {@link Payment}s in the CMS.
-	 * 
+	 *
 	 * @see DataObjectDecorator::canCreate()
 	 * @return Boolean False always
 	 */
-	function canCreate($member = null) {
+	public function canCreate($member = null) {
 		return false;
 	}
 

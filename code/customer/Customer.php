@@ -26,9 +26,51 @@ class Customer extends Member {
 		'Surname',
 		'Email'
 	);
-	
+
+	public function providePermissions() {
+		return array(
+			'VIEW_CUSTOMER' => array(
+				'name' => _t('Permissions.SHOP_VIEW_CUSTOMERS', 'View shop customers'),
+				'category' => _t('Permissions.SHOP_CATEGORY', 'Shop permissions'),
+				'sort' => 1,
+				'help' => _t('Permissions.SHOP_VIEW_CUSTOMERS_HELP', 'Ability to view all customers')
+			),
+			'EDIT_CUSTOMER' => array(
+				'name' => _t('Permissions.SHOP_EDIT_CUSTOMERS', 'Edit shop customer data'),
+				'category' => _t('Permissions.SHOP_CATEGORY', 'Shop permissions'),
+				'sort' => 2,
+				'help' => _t('Permissions.SHOP_EDIT_CUSTOMERS_HELP', 'Ability to edit all customer data')
+			),
+			'DELETE_CUSTOMER' => array(
+				'name' => _t('Permissions.SHOP_DELETE_CUSTOMERS', 'Delete shop customer'),
+				'category' => _t('Permissions.SHOP_CATEGORY', 'Shop permissions'),
+				'sort' => 4,
+				'help' => _t('Permissions.SHOP_DELETE_CUSTOMERS_HELP',
+					'Ability to delete a customer iff there are no associated orders')
+			)
+		);
+	}
+
+	public function canView($member = null) {
+		if ($member == null && !$member = Member::currentUser()) {
+			return false;
+		} else {
+			return Permission::checkMember($member, 'CMS_ACCESS_ShopAdmin')
+				&& Permission::checkMember($member, 'VIEW_CUSTOMER');
+		}
+	}
+
+	public function canEdit($member = null) {
+		if ($member == null && !$member = Member::currentUser()) {
+			return false;
+		} else {
+			return Permission::checkMember($member, 'CMS_ACCESS_ShopAdmin')
+				&& Permission::checkMember($member, 'EDIT_CUSTOMER');
+		}
+	}
+
 	/**
-	 * Prevent customers from being deleted.
+	 * Prevent customers from being deleted unless the have no orders associated.
 	 * 
 	 * @see Member::canDelete()
 	 */
@@ -38,7 +80,12 @@ class Customer extends Member {
 		if ($orders && $orders->exists()) {
 			return false;
 		}
-		return Permission::check('ADMIN', 'any', $member);
+		else if ($member == null && !$member = Member::currentUser()) {
+			return false;
+		} else {
+			return Permission::checkMember($member, 'CMS_ACCESS_ShopAdmin')
+				&& Permission::checkMember($member, 'EDIT_CUSTOMER');
+		}
 	}
 
 	public function delete() {
