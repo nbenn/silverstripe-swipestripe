@@ -7,7 +7,7 @@
  * @package swipestripe
  * @subpackage customer
  */
-class Customer extends Member {
+class Customer extends Member implements PermissionProvider {
 
 	private static $db = array(
 		'Code' => 'Int' //Just to trigger creating a Customer table

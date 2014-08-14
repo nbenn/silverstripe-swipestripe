@@ -8,7 +8,7 @@
  * @package swipestripe
  * @subpackage order
  */
-class Payment_Extension extends DataExtension {
+class Payment_Extension extends DataExtension implements PermissionProvider {
 
 	private static $has_one = array(
 		'Order' => 'Order' //Need to add Order here for ModelAdmin
